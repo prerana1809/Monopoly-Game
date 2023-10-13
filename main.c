@@ -3,6 +3,8 @@
 #include<stdlib.h>
 #include<conio.h>
 #include<time.h>
+#include <signal.h>
+// #include <sys/termios.h>
 #define clear() system("cls")
 #define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
 #define CURSOR_RESET gotoxy(0,58);
@@ -40,6 +42,8 @@
 #define Whitehall  "WhiteHall"
 #define Park_Lane  "Park Lane"
 #define Mayf_PP    "Mayfair Park Palace"
+char ch;
+int gamerunning = 1;
 
 void over_print(int,int);
 void end_screen_fun();
@@ -733,7 +737,7 @@ void game_start(){
     char plyr_statlines[40];
     char opt;
     char prop_confirm;
-    while(1) {
+    while(gamerunning){
         offset = 0;
         check_winner();
         update_assets(current_player);
@@ -771,6 +775,11 @@ void game_start(){
                 }
                 gotoxy(126,24);
                 Sleep(550);
+                break;
+            }
+            if(st_inp=='q')
+            {
+                gamerunning=0;
                 break;
             }
         }
@@ -882,7 +891,11 @@ void game_start(){
             }
             bypass:
             gotoxy(126,30);printf("Press any key to continue...");
-            getch();
+            if(getch()=='q')
+            {
+                gamerunning=0;
+                break;
+            }
         }
 
         //TAX SYSTEM
@@ -909,8 +922,11 @@ void game_start(){
             }
             gotoxy(126,22+(++offset));print_name_wclr(current_player);printf(" - %dR",TAX);
             Sleep(2000);
-            gotoxy(126,30);printf("Press any key to continue...");getch();
-        }
+            gotoxy(126,30);printf("Press any key to continue...");
+            if(getch()=='q'){
+                gamerunning=0;
+                break;
+            }
 
         else if(plyr_pos(current_player)==8) {
             players[current_player].in_park=1;
@@ -955,7 +971,12 @@ void game_start(){
                 players[property_properies[plyr_pos(current_player)][2]].money += rent_payment;
                 gotoxy(126,22+(offset++));print_name_wclr(property_properies[plyr_pos(current_player)][2]);printf(" + %dR",rent_payment);
                 Sleep(1000);
-                gotoxy(126,23+(offset++));printf("Press any key to continue...");getch();
+                gotoxy(126,23+(offset++));printf("Press any key to continue...");
+                if(getch()=='q')
+                {
+                    gamerunning=0;
+                    break;
+                }
             }
 
 
@@ -977,7 +998,7 @@ void game_start(){
             if(!players[current_player].in_jail && property_properies[plyr_pos(current_player)][2]==current_player) {
                 gotoxy(126,21+(offset++));printf("Press H to build a House/Hotel on this property");
             }
-            gotoxy(126,21+(offset++));printf("Press C to Continue to next player");
+            gotoxy(126,21+(offset++));printf("Press C to Continue to next player and q to quit");
             gotoxy(126,21+(offset++));
             offset = 0;
             while((opt=getch())!=EOF){
@@ -986,7 +1007,12 @@ void game_start(){
                         if(players[current_player].num_owned_prop!=0){
                             offset=sell_prop(current_player,0,-1);
                             Sleep(2000);
-                            gotoxy(126,30);printf("Press any key to continue...");getch();
+                            gotoxy(126,30);printf("Press any key to continue...");
+                            if(getch()=='q')
+                            {
+                                gamerunning=0;
+                                break;
+                            }
                             goto next;
                         }
                     case 'b':
@@ -1030,7 +1056,11 @@ void game_start(){
                                 }
                                 gotoxy(126,23+(offset++));printf("You have \033[0;32mSuccessfully\033[0m built a House on %s",prop_names[plyr_pos(current_player)]);
                                 Sleep(2500);
-                                gotoxy(126,30);printf("Press any key to continue...");getch();
+                                gotoxy(126,30);printf("Press any key to continue...");
+                                if(getch()=='q'){
+                                    gamerunning=0;
+                                    break;
+                                }
                                 goto next;
                             } else if(property_properies[plyr_pos(current_player)][4]==0) {
                                 if(players[current_player].money>=buy_sell_pay[plyr_pos(current_player)][7]){
@@ -1044,11 +1074,18 @@ void game_start(){
                                     goto next;
                                 }
                                 gotoxy(126,23+(offset++));printf("You have \033[0;32mSuccessfully\033[0m built a Hotel on %s",prop_names[plyr_pos(current_player)]);
-                                gotoxy(126,30);printf("Press any key to continue...");getch();
+                                gotoxy(126,30);printf("Press any key to continue...");
+                                if(getch()=='q')
+                                {
+                                    gamerunning=0;
+                                    break;
+                                }
                             }
                         }
                     case 'c':
                         goto next;
+                    case 'q':
+                        gamerunning=0;
                     }   
             }
         }
@@ -1057,8 +1094,10 @@ void game_start(){
     }
     CURSOR_RESET;
 }
+}
 //Main fucntion
 int main() {
+    char ch;
     startup();
     game_start();
     exit(1);
